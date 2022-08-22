@@ -1,4 +1,10 @@
-*sentence1
-*other thing 2
-*uno *unos *unes 
-*una *unas
+los procedimientos permiten una programacion estructurada,
+facilitan el desarrollo,
+la comprension, 
+la fiabilidad y la reutilizacion de los programas,
+Son bloques de codigo, 
+independientes que interactuan,
+con el resto del codigo,
+mediante el paso de parametros,
+y la entrega de resultados,
+

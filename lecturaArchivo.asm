@@ -6,7 +6,7 @@
 .data
 file_in:	.asciiz "sentences.txt"
 file_out:	.asciiz "output.txt"
-sentence:	.byte 0x0D, 0x0A #, 0x0D, 0x0A
+sentence:	.byte 0x0D, 0x0A #, 0x0D, 0x0A 
 msg1:		.asciiz "Please Enter the sentence separator string: "
 msg2:		.asciiz "\nSorted list of Sentences is: "
 separator:      .space 20	
