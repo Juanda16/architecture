@@ -42,6 +42,7 @@ sentence_cont:	.asciiz "// Fin"
 
 .align 2
 input_buffer:	.space 5120	# Maximum input file size in Bytes
+characters_to_read: .space 4
 
     .align 2
 coma:
@@ -102,6 +103,7 @@ read:
 	li $a2, 5120		# Maximum number of characters to read
 	syscall			# Read from file
 	move $t1, $v0		# Copy number of characters read
+	sw $t1,characters_to_read
 	
 	
    
@@ -271,7 +273,50 @@ nextchar:
 	j nextchar_return
     
     
+prdone:	
 
+# Open (for writing) a file that does not exist
+	li $v0, 13		# System call for open file
+	la $a0, file_out	# Input file name
+	li $a1, 1		# Open for overwriting (flag = 1)
+	#li $a1, 9		# Open for appending (flag = 9)
+	#li $a2, 0		# Mode is ignored
+	syscall			# Open a file (file descriptor returned in $v0)
+	move $s1, $v0		# Copy file descriptor
+	
+# Process file loaded in memory
+
+	li $v0, 15		# System call for write to a file
+	move $a0, $s1		# Restore file descriptor (open for writing)
+	la $a1, input_buffer	# Address of buffer from which to write
+	lw  $t1, characters_to_read
+	move $a2, $t1		# Number of characters to write
+	syscall
+	
+# Append a sentence to a file
+move $t0,$zero
+move $t1,$zero
+
+save_loop:
+    bgt $t0,3,save_loop_exit  #loop to save, 3 is the lenght of the vector -1 *********
+    mul $t1, $t0,4
+    addi $t0,$t0,1
+    li $v0, 15		# System call for write to a file
+    move $a0, $s1		# Restore file descriptor (open for writing) 
+    lw $a3, vector($t1)
+    la $a1, ($a3)	# Address of buffer from which to write
+    li $a2, 15	# Number of characters to write. it should depends of any sentence   *********
+    syscall
+	
+     li $v0, 15		# System call for write to a file
+	move $a0, $s1		# Restore file descriptor (open for writing)
+	la $a1,sentence	# Address of buffer from which to write
+	li $a2, 2		# Number of characters to write
+	syscall
+    j save_loop  
+
+save_loop_exit:
+ 
     
     # r Close the files
  
@@ -282,7 +327,8 @@ nextchar:
 	li   $v0, 16       # system call for close file
 	move $a0, $s1      # file descriptor to close
 	syscall       
+	
 
-prdone:						# We are finished
+					# We are finished
 	li	$v0,10
 	syscall
