@@ -114,7 +114,7 @@ for:
 			
 #mensaje de prueba de brinco
 found_sep:	# TOMAR DE ACA EL CONTADOR DE CARACTERES POR FRASE ATES DE BORRARLO $t5
-	sw $t5, 0($t7)		#load number of character per sentence
+	sw $t5, 0($t7)		#save number of character per sentence
 	addi $t7, $t7,4
 	li $t5, 0		#poner en cero el contador de caracteres por frase
 	li $v0, 4
@@ -275,6 +275,52 @@ shiftend:
 	jr	$ra			# Return
 	
 sortend:				# Point to jump to when sorting is complete
+
+#####
+la $t7, char_p_s	# Address of char_p_s
+la $t3, vectorA		# Copy Address of input buffer
+for2: 	
+	lb   $t2, ($t3)		# FOR --Copy value from addres
+	
+	beq $t2, $t0 found_sep2	#brinca si ES es igual la primera letra al separador
+	addi $t5, $t5, 1	#add 1 to character counter
+	addi $t3, $t3, 1	#add 1 to address for the next comparation
+	bge $t3, $t4 counter_end #FIN FOR brinca a crear el archivo al terminar de recorrer
+	j for2
+	
+			
+#mensaje de prueba de brinco
+found_sep2:	# TOMAR DE ACA EL CONTADOR DE CARACTERES POR FRASE ATES DE BORRARLO $t5
+	sw $t5, 0($t7)		#save number of character per sentence
+	addi $t7, $t7,4
+	li $t5, 0		#poner en cero el contador de caracteres por frase
+	
+    	addi $t3, $t3,1		#add1 to addres to start checking
+    	lb   $t2, ($t3)		# FOR --Copy value from addres
+    	j if2
+if2:
+	bne $t2, 32 check_next4	# check if ther is an space
+	addi $t3, $t3,1		# yes! so add1 to addres to continue checkin
+	lb   $t2, ($t3)		# FOR --Copy value from addres
+	j if			#check again if the next is an space too
+check_next4: 
+	bne $t2, 10 check_next5 # check if ther is an \n nueva linea
+	addi $t3, $t3,1		# yes! so add1 to addres to continue checkin
+	lb   $t2, ($t3)		# FOR --Copy value from addres
+	j if			#check again if the next is an space too, and start again
+check_next5: 
+	bne $t2, 13 for2	# check if ther is an \r retorno de carro
+	addi $t3, $t3,1		# yes! so add1 to addres to continue checkin
+	lb   $t2, ($t3)		# FOR --Copy value from addres
+	j if
+	
+
+
+##################
+
+counter_end:
+
+
 
 
 # Print out the indirect array
