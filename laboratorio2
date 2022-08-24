@@ -4,7 +4,6 @@ length:	.word	4	# Array
 
 eol:	.asciiz	"\n"
 
-cha_per_s: .space 
 # Some test data
 eight:	.word	8
 five:	.word	5

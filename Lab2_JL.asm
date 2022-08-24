@@ -4,32 +4,6 @@ length:		.word	4	# Array
 eol:	.asciiz	"\n"
 
 
-# Some test data
-eight:	.word	8
-five:	.word	5
-four:	.word	4
-nine:	.word	9
-one:	.word	1
-seven:	.word	7
-six:	.word	6
-ten:	.word	10
-three:	.word	3
-two:	.word	2
-
-# An array of pointers (indirect array)
-
-info:	.word	seven
-	.word	three
-	.word	ten
-	.word	one
-	.word	five
-	.word	two
-	.word	nine
-	.word	eight
-	.word	four
-	.word	
-
-
 file_in:	.asciiz "sentences.txt"
 file_out:	.asciiz "output.txt"
 sentence:	.byte 0x0D, 0x0A #, 0x0D, 0x0A 
@@ -40,12 +14,12 @@ separator:      .space 20
 
 
 
-.align 2			#busca la siguiente posición de memoria mult de 4  para poner a input_buffer
+.align 2			#busca la siguiente posiciï¿½n de memoria mult de 4  para poner a input_buffer
 input_buffer:	.space 5120	# Maximum input file size in Bytes
 characters_to_read: .space 4
 vectorA: 	.space 5120	# saved with the first letter addres of each sentences
 sentence_cont:	.space 1280
-char_p_s:	.space 20
+char_p_s:	.space 100
 
     .align 2
 coma:
@@ -127,7 +101,7 @@ read:
     #beq $t3, $t4 ,a_equal_b
     
 # PEGAR LLO SUYO AQUI *********
-#recorrer para buscar la dirección de la primera letra de cada frase 
+#recorrer para buscar la direcciï¿½n de la primera letra de cada frase 
 for: 	
 	lb   $t2, ($t3)		# FOR --Copy value from addres
 	beq $t2, $t0 found_sep	#brinca si ES es igual la primera letra al separador
@@ -168,8 +142,8 @@ check_next2:
 load_vectorA:			#la $a3, vectorA (se hizo arriba)Address of vectorA
 	addi $t6, $t6,1		#cAddress counter	
 	sw $t6,sentence_cont	#number of sentences saved 	
-	sw $t2, 0($a3)		#Cargar caracteres para pruebas
-	#sw $t3, 0($a3)		Activar para cargar direcciones
+	#sw $t2, 0($a3)		#Cargar caracteres para pruebas
+	sw $t3, 0($a3)		#Activar para cargar direcciones
 	addi $a3, $a3,4
 	j for
 	    	
@@ -361,7 +335,7 @@ move $t1,$zero
 
 save_loop:
     lw $t6, sentence_cont     #load on $t6 the number of sentences
-    bgt $t0,$t6,save_loop_exit  #loop to save, 3 is the lenght of the vector -1 *********
+    beq $t0,$t6,save_loop_exit  #loop to save, 3 is the lenght of the vector -1 *********
     mul $t1, $t0,4
     addi $t0,$t0,1
     li $v0, 15		# System call for write to a file
