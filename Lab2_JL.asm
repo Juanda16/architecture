@@ -1,10 +1,9 @@
 .data
-vector:	.word	268501228, 268501288, 268501314, 268501332
-length:	.word	4	# Array 
+length:		.word	4	# Array 
 
 eol:	.asciiz	"\n"
 
-cha_per_s: .space 
+
 # Some test data
 eight:	.word	8
 five:	.word	5
@@ -36,13 +35,17 @@ file_out:	.asciiz "output.txt"
 sentence:	.byte 0x0D, 0x0A #, 0x0D, 0x0A 
 msg1:		.asciiz "Please Enter the sentence separator string: "
 msg2:		.asciiz "\nSorted list of Sentences is: "
-msg3:		.asciiz "\n : "
+msg3:		.asciiz "\nFoud separator "
 separator:      .space 20	
-sentence_cont:	.asciiz "// Fin"
 
-.align 2
+
+
+.align 2			#busca la siguiente posición de memoria mult de 4  para poner a input_buffer
 input_buffer:	.space 5120	# Maximum input file size in Bytes
 characters_to_read: .space 4
+vectorA: 	.space 5120	# saved with the first letter addres of each sentences
+sentence_cont:	.space 1280
+char_p_s:	.space 20
 
     .align 2
 coma:
@@ -78,56 +81,113 @@ str_pointers:
     .space 96 # more than: number of names(17) * 4bytes each address = 
 
 
-myFile: .asciiz "sentences.txt" # filename for input
-
-
-		  		  
-
     .text
     .globl main
     
 main:
+	la $t7, char_p_s	# Address of char_p_s
 # Open (for reading) a file
 	li $v0, 13		# System call for open file
-	la $a0, file_in		# Input file name
-	li $a1, 0		# Open for reading (flag = 0)
+	la $a0, file_in		# Input file name -> $a0 = argument
+	li $a1, 0		# Open for reading (flag = 0)->depende si es solo lectura, escritura o apend
 	#li $a2, 0		# Mode is ignored
 	syscall			# Open a file (file descriptor returned in $v0)
 	move $s0, $v0		# Copy file descriptor
-	
+
+# MessageDialog (for sentence separator) the user to type  
+    	li $v0, 4
+  	la $a0, msg1            #prints message1 to screen
+    	syscall
+    	li $v0, 12		#read string type by user (value saved in $vo)
+    	syscall
+    	#la $a0, separator	# load byte space into address
+    	#li $a1, 20      	# allot the byte space for string (4)
+    	move $t0, $v0   	# save string to t0
+       	syscall                 
+    	#move $s3, $v0		# System call for MessageDialog
+    		
 read:
 # Read from previously opened file
 	li $v0, 14		# System call for reading from file
-	move $a0, $s0		# File descriptor
+	move $a0, $s0		# File descriptor (resultado de la apertura anteerior move $s0, $v0 )
 	la $a1, input_buffer	# Address of input buffer
 	li $a2, 5120		# Maximum number of characters to read
 	syscall			# Read from file
+	la $t3, input_buffer	# Copy Address of input buffer
 	move $t1, $v0		# Copy number of characters read
 	sw $t1,characters_to_read
-	
+	add $t4, $t3, $t1	# Limit to FOR
+	li $t5, 0		#poner en cero el contador de caracteres por frase
+	lb   $t2, ($t3)		# FOR --Copy value from addres
+	la $a3, vectorA		# Address of vectorA 
+	j load_vectorA 	#save first character of the first sentence on memory
 	
    
-    la	$a0, vector		# Load the start address of the array
-    lw	$t0, length		# Load the array length
-    sll	$t0, $t0, 2		# Multiple the array length by 4 (the size of the elements)
-    add	$a1, $a0, $t0		# Calculate the array end address
-    jal	mergesort		# Call the merge sort function
-    b	sortend	
-    
-    
     #bgt $t3, $t4 ,a_grater_b
     #beq $t3, $t4 ,a_equal_b
     
-    
 # PEGAR LLO SUYO AQUI *********
+#recorrer para buscar la dirección de la primera letra de cada frase 
+for: 	
+	lb   $t2, ($t3)		# FOR --Copy value from addres
+	beq $t2, $t0 found_sep	#brinca si ES es igual la primera letra al separador
+	addi $t5, $t5, 1	#add 1 to character counter
+	addi $t3, $t3, 1	#add 1 to address for the next comparation
+	bge $t3, $t4 start_sorting #FIN FOR brinca a crear el archivo al terminar de recorrer
+	j for
+	
+			
+#mensaje de prueba de brinco
+found_sep:	# TOMAR DE ACA EL CONTADOR DE CARACTERES POR FRASE ATES DE BORRARLO $t5
+	sw $t5, 0($t7)		#load number of character per sentence
+	addi $t7, $t7,4
+	li $t5, 0		#poner en cero el contador de caracteres por frase
+	li $v0, 4
+  	la $a0, msg3            #Es igual: prints message4 to screen
+    	syscall
+    	addi $t3, $t3,1		#add1 to addres to start checking
+    	lb   $t2, ($t3)		# FOR --Copy value from addres
+    	j if
+if:
+	bne $t2, 32 check_next	# check if ther is an space
+	addi $t3, $t3,1		# yes! so add1 to addres to continue checkin
+	lb   $t2, ($t3)		# FOR --Copy value from addres
+	j if			#check again if the next is an space too
+check_next: 
+	bne $t2, 10 check_next2 # check if ther is an \n nueva linea
+	addi $t3, $t3,1		# yes! so add1 to addres to continue checkin
+	lb   $t2, ($t3)		# FOR --Copy value from addres
+	j if			#check again if the next is an space too, and start again
+check_next2: 
+	bne $t2, 13 load_vectorA	# check if ther is an \r retorno de carro
+	addi $t3, $t3,1		# yes! so add1 to addres to continue checkin
+	lb   $t2, ($t3)		# FOR --Copy value from addres
+	j if
+	
+	
+load_vectorA:			#la $a3, vectorA (se hizo arriba)Address of vectorA
+	addi $t6, $t6,1		#cAddress counter	
+	sw $t6,sentence_cont	#number of sentences saved 	
+	sw $t2, 0($a3)		#Cargar caracteres para pruebas
+	#sw $t3, 0($a3)		Activar para cargar direcciones
+	addi $a3, $a3,4
+	j for
+	    	
 
+############################################################################################
+start_sorting:
+    	la	$a0, vectorA		# Load the start address of the array
+    	lw	$t0, sentence_cont	# Load the array length
+    	sll	$t0, $t0, 2		# Multiple the array length by 4 (the size of the elements)
+    	add	$a1, $a0, $t0		# Calculate the array end address
+    	jal	mergesort		# Call the merge sort function
+   	 b	sortend	
 ##
 # Recrusive mergesort function
 #
 # @param $a0 first address of the array
 # @param $a1 last address of the array
 ##
-
 mergesort:
 
 	addi	$sp, $sp, -16		# Adjust stack pointer
@@ -247,7 +307,7 @@ prloop:
 	lw	$t1,length			# Load the array length
 	bge	$t0,$t1,prdone			# If we hit the end of the array, we are done
 	sll	$t2,$t0,2			# Multiply the index by 4 (2^2)
-	lw	$t3,vector($t2)			# Get the pointer
+	lw	$t3,vectorA($t2)			# Get the pointer
 	lbu 	$a0,0($t3)			# Get the value pointed to and store it for printing
 	li	$v0,1				
 	syscall					# Print the value
@@ -300,14 +360,15 @@ move $t0,$zero
 move $t1,$zero
 
 save_loop:
-    bgt $t0,3,save_loop_exit  #loop to save, 3 is the lenght of the vector -1 *********
+    lw $t6, sentence_cont     #load on $t6 the number of sentences
+    bgt $t0,$t6,save_loop_exit  #loop to save, 3 is the lenght of the vector -1 *********
     mul $t1, $t0,4
     addi $t0,$t0,1
     li $v0, 15		# System call for write to a file
     move $a0, $s1		# Restore file descriptor (open for writing) 
-    lw $a3, vector($t1)
+    lw $a3, vectorA($t1)
     la $a1, ($a3)	# Address of buffer from which to write
-    li $a2, 15	# Number of characters to write. it should depends of any sentence   *********
+    lb $a2, char_p_s($t1)	# Number of characters to write. it should depends of any sentence   *********
     syscall
 	
      li $v0, 15		# System call for write to a file
