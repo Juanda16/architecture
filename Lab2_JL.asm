@@ -104,6 +104,7 @@ read:
 #recorrer para buscar la direcci�n de la primera letra de cada frase 
 for: 	
 	lb   $t2, ($t3)		# FOR --Copy value from addres
+	
 	beq $t2, $t0 found_sep	#brinca si ES es igual la primera letra al separador
 	addi $t5, $t5, 1	#add 1 to character counter
 	addi $t3, $t3, 1	#add 1 to address for the next comparation
@@ -150,6 +151,7 @@ load_vectorA:			#la $a3, vectorA (se hizo arriba)Address of vectorA
 
 ############################################################################################
 start_sorting:
+	sw $t5, 0($t7)
     	la	$a0, vectorA		# Load the start address of the array
     	lw	$t0, sentence_cont	# Load the array length
     	sll	$t0, $t0, 2		# Multiple the array length by 4 (the size of the elements)
