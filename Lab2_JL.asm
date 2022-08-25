@@ -20,6 +20,7 @@ char_p_s:	.space 100  #Characters per sentence
 
 main:
 la $t7, char_p_s	# Address of char_p_s
+
 # Open (for reading) a file
 li $v0, 13		# System call for open file
 la $a0, file_in		# Input file name -> $a0 = argument
@@ -34,12 +35,10 @@ la $a0, msg1            #prints message1 to screen
 syscall
 li $v0, 12		#read string type by user (value saved in $vo)
 syscall
-#la $a0, separator	# load byte space into address
-#li $a1, 20      	# allot the byte space for string (4)
+
 move $t0, $v0   	# save string to t0
 move $s2, $v0   	# save string to t0
 syscall
-#move $s3, $v0		# System call for MessageDialog
 
 read:
 # Read from previously opened file
@@ -57,7 +56,7 @@ lb   $t2, ($t3)		# FOR --Copy value from addres
 la $a3, vectorA		# Address of vectorA
 j load_vectorA 	#save first character of the first sentence on memory
 
-#recorrer para buscar la direcci�n de la primera letra de cada frase
+#go through to find the address of the first letter of each sentence
 for:
 lb   $t2, ($t3)		# FOR --Copy value from addres
 
