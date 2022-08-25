@@ -1,5 +1,2 @@
-Retort,
-Trsfsdf,
-Asdfsdf,
-Zsdfgsdf,
-basewe
+los, facilitan el desarrollo, la comprension, la fiabilidad y la reutilizacion de los programas, son bloques de codigo, independientes que interactuan, con el resto del c—digo,
+mediante el paso de parametros, y la entrega de resultados

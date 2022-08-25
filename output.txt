@@ -1,5 +1,9 @@
-Asdfsdf
-Retort
-Trsfsdf
-Zsdfgsdf
-basewe
+con el resto del c—digo
+facilitan el desarrollo
+independientes que interactuan
+la comprension
+la fiabilidad y la reutilizacion de los programas
+los
+mediante el paso de parametros
+son bloques de codigo
+y la entrega de resultados
