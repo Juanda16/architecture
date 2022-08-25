@@ -1,6 +1,5 @@
-los procedimientos permiten una programacion estructurada,
-facilitan el desarrollo,
-la comprension, 
-la fiabilidad y la reutilizacion de los programas
-
-
+Retort,
+Trsfsdf,
+Asdfsdf,
+Zsdfgsdf,
+basewe

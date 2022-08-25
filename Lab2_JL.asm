@@ -1,8 +1,6 @@
 .data
 length:		.word	4	# Array 
-
 eol:	.asciiz	"\n"
-
 
 file_in:	.asciiz "sentences.txt"
 file_out:	.asciiz "output.txt"
@@ -10,9 +8,6 @@ sentence:	.byte 0x0D, 0x0A #, 0x0D, 0x0A
 msg1:		.asciiz "Please Enter the sentence separator string: "
 msg2:		.asciiz "\nSorted list of Sentences is: "
 msg3:		.asciiz "\nFoud separator "
-separator:      .space 20	
-
-
 
 .align 2			#busca la siguiente posici�n de memoria mult de 4  para poner a input_buffer
 input_buffer:	.space 5120	# Maximum input file size in Bytes
@@ -77,6 +72,7 @@ main:
     	#la $a0, separator	# load byte space into address
     	#li $a1, 20      	# allot the byte space for string (4)
     	move $t0, $v0   	# save string to t0
+    	move $s2, $v0   	# save string to t0
        	syscall                 
     	#move $s3, $v0		# System call for MessageDialog
     		
@@ -96,11 +92,6 @@ read:
 	la $a3, vectorA		# Address of vectorA 
 	j load_vectorA 	#save first character of the first sentence on memory
 	
-   
-    #bgt $t3, $t4 ,a_grater_b
-    #beq $t3, $t4 ,a_equal_b
-    
-# PEGAR LLO SUYO AQUI *********
 #recorrer para buscar la direcci�n de la primera letra de cada frase 
 for: 	
 	lb   $t2, ($t3)		# FOR --Copy value from addres
@@ -230,12 +221,9 @@ mergeloop:
 	beq     $t1, $t0, nextchar
 	continue:
 	move    $s7,$zero
-	
-	
-	
+		
 	bgt	$t1, $t0, noshift	# If the lower value is already first, don't shift
 	
-
 	move	$a0, $s1		# Load the argument for the element to move
 	move	$a1, $s0		# Load the argument for the address to move it to
 	jal	shift			# Shift the element to the new position 
@@ -278,50 +266,37 @@ sortend:				# Point to jump to when sorting is complete
 
 #####
 la $t7, char_p_s	# Address of char_p_s
-la $t3, vectorA		# Copy Address of input buffer
+la $t6, vectorA		# Copy Address of input buffer
+li $t5, 0		#poner en cero el contador de caracteres por frase
+lw $t1,characters_to_read
+move $t4, $zero	# Limit to FOR
+lw $t3,($t6)
+
 for2: 	
 	lb   $t2, ($t3)		# FOR --Copy value from addres
 	
-	beq $t2, $t0 found_sep2	#brinca si ES es igual la primera letra al separador
+	beq $t2, $s2 found_sep2	#brinca si ES es igual la primera letra al separador
+	beq $t2, 0, found_sep2	#brinca si ES es igual la primera letra al separador
 	addi $t5, $t5, 1	#add 1 to character counter
 	addi $t3, $t3, 1	#add 1 to address for the next comparation
-	bge $t3, $t4 counter_end #FIN FOR brinca a crear el archivo al terminar de recorrer
+	addi $t4, $t4, 1	#add 1 to address for the next comparation
+	
 	j for2
 	
 			
 #mensaje de prueba de brinco
 found_sep2:	# TOMAR DE ACA EL CONTADOR DE CARACTERES POR FRASE ATES DE BORRARLO $t5
+	addi $t6, $t6, 4
 	sw $t5, 0($t7)		#save number of character per sentence
 	addi $t7, $t7,4
 	li $t5, 0		#poner en cero el contador de caracteres por frase
-	
-    	addi $t3, $t3,1		#add1 to addres to start checking
-    	lb   $t2, ($t3)		# FOR --Copy value from addres
-    	j if2
-if2:
-	bne $t2, 32 check_next4	# check if ther is an space
-	addi $t3, $t3,1		# yes! so add1 to addres to continue checkin
-	lb   $t2, ($t3)		# FOR --Copy value from addres
-	j if			#check again if the next is an space too
-check_next4: 
-	bne $t2, 10 check_next5 # check if ther is an \n nueva linea
-	addi $t3, $t3,1		# yes! so add1 to addres to continue checkin
-	lb   $t2, ($t3)		# FOR --Copy value from addres
-	j if			#check again if the next is an space too, and start again
-check_next5: 
-	bne $t2, 13 for2	# check if ther is an \r retorno de carro
-	addi $t3, $t3,1		# yes! so add1 to addres to continue checkin
-	lb   $t2, ($t3)		# FOR --Copy value from addres
-	j if
-	
-
-
-##################
-
+	lw $t3,($t6)
+	beqz  $t3, counter_end #FIN FOR brinca a crear el archivo al terminar de recorrer
+        j for2
+    	
 counter_end:
 
-
-
+sw $t5, 0($t7)
 
 # Print out the indirect array
 	li	$t0, 0				# Initialize the current index
@@ -352,7 +327,6 @@ nextchar:
 	add 	$t9, $t1,$s7
         lb 	$t0, ($t5)		# Load the first half position value ## aqqui debo coger el valor real
 	lb	$t1, ($t9)
-	
 	addi 	$s7,$s7,1
 	j nextchar_return
     
@@ -363,19 +337,9 @@ prdone:
 	li $v0, 13		# System call for open file
 	la $a0, file_out	# Input file name
 	li $a1, 1		# Open for overwriting (flag = 1)
-	#li $a1, 9		# Open for appending (flag = 9)
-	#li $a2, 0		# Mode is ignored
 	syscall			# Open a file (file descriptor returned in $v0)
 	move $s1, $v0		# Copy file descriptor
 	
-# Process file loaded in memory
-
-	li $v0, 15		# System call for write to a file
-	move $a0, $s1		# Restore file descriptor (open for writing)
-	la $a1, input_buffer	# Address of buffer from which to write
-	lw  $t1, characters_to_read
-	move $a2, $t1		# Number of characters to write
-	syscall
 	
 # Append a sentence to a file
 move $t0,$zero
@@ -391,6 +355,7 @@ save_loop:
     lw $a3, vectorA($t1)
     la $a1, ($a3)	# Address of buffer from which to write
     lb $a2, char_p_s($t1)	# Number of characters to write. it should depends of any sentence   *********
+    #li $a2 , 5
     syscall
 	
      li $v0, 15		# System call for write to a file
