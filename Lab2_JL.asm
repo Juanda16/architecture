@@ -54,7 +54,7 @@ add $t4, $t3, $t1	# Limit to FOR
 li $t5, 0		#poner en cero el contador de caracteres por frase
 lb   $t2, ($t3)		# FOR --Copy value from addres
 la $a3, vectorA		# Address of vectorA
-j load_vectorA 	#save first character of the first sentence on memory
+jal load_vectorA  	#save first character of the first sentence on memory
 
 #go through to find the address of the first letter of each sentence
 for:
@@ -100,7 +100,7 @@ addi $t6, $t6,1		#cAddress counter
 sw $t6,sentence_cont	#number of sentences saved
 sw $t3, 0($a3)		#Activar para cargar direcciones
 addi $a3, $a3,4
-j for
+jr  $ra
 
 
 ############################################################################################
@@ -312,5 +312,5 @@ li   $v0, 16       # system call for close file
 move $a0, $s1      # file descriptor to close
 syscall
 
-# We are finished
-li	$v0,10
+Exit:	li   $v0, 10		# System call for exit
+	syscall
